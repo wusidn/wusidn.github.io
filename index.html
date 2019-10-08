@@ -1,194 +1,78 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Three框架</title>
-        <script src="script/three.js"></script>
-        <script src="script/stats.min.js"></script>
-        <script src="script/Tween.js"></script>
-        
-        
-        <style type="text/css">
-        *{ padding: 0; margin: 0;}
-            div#canvas-frame {
-                border: none;
-                cursor: pointer;
-                width: 100%;
-                height: 600px;
-                background-color: #EEEEEE;
-            }
+<head>
+  <meta charset="utf-8">
 
-        </style>
-        <script>
-            var renderer;
-            var stats = new Stats();
-            function initThree() {
-                width = document.getElementById('canvas-frame').clientWidth;
-                height = document.getElementById('canvas-frame').clientHeight;
-                renderer = new THREE.WebGLRenderer({
-                    antialias : true
-                });
-                renderer.setSize(width, height);
-                document.getElementById('canvas-frame').appendChild(renderer.domElement);
-                renderer.setClearColor(0x000000, 1.0);
+  <title>Cocos Creator | TanksAttackRocks</title>
 
-                //初始化FPS监视器  
-                stats.setMode(0); // 0: fps, 1: ms
-                // 将stats的界面对应左上角
-                stats.domElement.style.position = 'absolute';
-                stats.domElement.style.left = '0px';
-                stats.domElement.style.top = '0px';
-                document.body.appendChild( stats.domElement );
+  <!--http://www.html5rocks.com/en/mobile/mobifying/-->
+  <meta name="viewport"
+        content="width=device-width,user-scalable=no,initial-scale=1, minimum-scale=1,maximum-scale=1"/>
 
-            }
+  <!--https://developer.apple.com/library/safari/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
 
-            var camera;
-            function initCamera() {
+  <!-- force webkit on 360 -->
+  <meta name="renderer" content="webkit"/>
+  <meta name="force-rendering" content="webkit"/>
+  <!-- force edge on IE -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <meta name="msapplication-tap-highlight" content="no">
 
-                //正交投影
-                // camera = new THREE.OrthographicCamera(width / 2, width / -2, height / 2, height / -2, 1, 10000);
-                //透视投影
-                camera = new THREE.PerspectiveCamera(36, width / height, 1, 10000);
-                camera.position.x = 0;
-                camera.position.y = 0;
-                camera.position.z = 600;
-                camera.up.x = 0;
-                camera.up.y = 1;
-                camera.up.z = 0;
-                camera.lookAt({
-                    x : 0,
-                    y : 0,
-                    z : 0
-                });
-            }
+  <!-- force full screen on some browser -->
+  <meta name="full-screen" content="yes"/>
+  <meta name="x5-fullscreen" content="true"/>
+  <meta name="360-fullscreen" content="true"/>
+  
+  <!-- force screen orientation on some browser -->
+  <meta name="screen-orientation" content=""/>
+  <meta name="x5-orientation" content="">
 
-            var scene;
-            function initScene() {
-                scene = new THREE.Scene();
-            }
+  <!--fix fireball/issues/3568 -->
+  <!--<meta name="browsermode" content="application">-->
+  <meta name="x5-page-mode" content="app">
 
-            var light;
-            function initLight() {
-                light = new THREE.DirectionalLight(0xFFFFFF, 1.0, 0);
-                light.position.set(100, 100, 200);
-                scene.add(light);
-            }
+  <!--<link rel="apple-touch-icon" href=".png" />-->
+  <!--<link rel="apple-touch-icon-precomposed" href=".png" />-->
 
+  <link rel="stylesheet" type="text/css" href="style-mobile.css"/>
 
-            var lines = [];
-            function initObject() {
+</head>
+<body>
+  <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
+  <div id="splash">
+    <div class="progress-bar stripes">
+      <span style="width: 0%"></span>
+    </div>
+  </div>
+<script src="src/settings.js" charset="utf-8"></script>
 
-                var material = new THREE.LineBasicMaterial( { vertexColors: true } );
+<script src="main.js" charset="utf-8"></script>
 
-                //画网格
-                for(var i = 0; i < 40; ++i){
-                    var geometry = new THREE.Geometry();
+<script type="text/javascript">
+(function () {
+    // open web debugger console
+    if (typeof VConsole !== 'undefined') {
+        window.vConsole = new VConsole();
+    }
 
-                    geometry.vertices.push(new THREE.Vector3(-1000 + 50 * i, -1000, 0));
-                    geometry.vertices.push(new THREE.Vector3(-1000 + 50 * i, 1000, 0));
+    var splash = document.getElementById('splash');
+    splash.style.display = 'block';
 
-                    geometry.colors.push(new THREE.Color(0x666666), new THREE.Color(0x666666));
+    var cocos2d = document.createElement('script');
+    cocos2d.async = true;
+    cocos2d.src = window._CCSettings.debug ? 'cocos2d-js.js' : 'cocos2d-js-min.js';
 
-                    var line = new THREE.Line( geometry, material, THREE.LinePieces );
-                    scene.add(line);
-                }
-
-                for(var i = 0; i < 40; ++i){
-                    var geometry = new THREE.Geometry();
-
-                    geometry.vertices.push(new THREE.Vector3(-1000, -1000 + 50 * i, 0));
-                    geometry.vertices.push(new THREE.Vector3(1000, -1000 + 50 * i, 0));
-
-                    geometry.colors.push(new THREE.Color(0x666666), new THREE.Color(0x666666));
-
-                    var line = new THREE.Line( geometry, material, THREE.LinePieces );
-                    scene.add(line);
-                }
-
-
-                var points = [
-                    new THREE.Vector3(-100, -100, -100),
-                    new THREE.Vector3(100, -100, -100),
-                    new THREE.Vector3(100, 100, -100),
-                    new THREE.Vector3(-100, 100, -100),
-                    new THREE.Vector3(-100, -100, 100),
-                    new THREE.Vector3(100, -100, 100),
-                    new THREE.Vector3(100, 100, 100),
-                    new THREE.Vector3(-100, 100, 100)
-                ];
-
-                var colors = [
-                    new THREE.Color( 0xFF0000 ),
-                    new THREE.Color( 0x00FF00 ),
-                    new THREE.Color( 0x0000FF ),
-                    new THREE.Color( 0xFFFF00 ),
-                    new THREE.Color( 0x00FFFF ),
-                    new THREE.Color( 0x0FF0F0 ),
-                    new THREE.Color( 0x0FF000 ),
-                    new THREE.Color( 0x0FFFF0 )
-                ];
-
-                for(var i = 0; i < points.length; ++i){
-                    for(var j = 0; j < points.length; ++j){
-
-                        var flag = 0;
-
-                        points[i].x === points[j].x && ++flag;
-                        points[i].y === points[j].y && ++flag;
-                        points[i].z === points[j].z && ++flag;
-
-                        if(flag !== 2) continue;
-
-
-                        var geometry = new THREE.Geometry();
-                        geometry.vertices.push(points[i], points[j]);
-
-                        geometry.colors.push(colors[i], colors[j]);
-
-                        var line = new THREE.Line( geometry, material, THREE.LinePieces );
-                        lines.push(line);
-                        scene.add(line);
-                    }
-                }
-
-                new TWEEN.Tween(camera.position).to({x: 200}, 10000).repeat( Infinity ).start();
-            }
-
-
-            function render(){
-
-                for(var i = 0; i < lines.length; ++i){
-                    lines[i].rotation.x += Math.PI / 180;
-                    lines[i].rotation.y += Math.PI / 180;
-                    // lines[i].rotation.z += Math.PI / 180;
-                }
-            }
-
-            function animation(){
-
-                render();
-                
-                renderer.render(scene, camera);
-                requestAnimationFrame(animation);
-
-                stats.update();
-                TWEEN.update();
-            }
-
-            function threeStart() {
-                initThree();
-                initCamera();
-                initScene();
-                initLight();
-                initObject();
-
-                animation();
-            }
-
-        </script>
-    </head>
-
-    <body onload="threeStart();">
-        <div id="canvas-frame"></div>
-    </body>
+    var engineLoaded = function () {
+        document.body.removeChild(cocos2d);
+        cocos2d.removeEventListener('load', engineLoaded, false);
+        window.boot();
+    };
+    cocos2d.addEventListener('load', engineLoaded, false);
+    document.body.appendChild(cocos2d);
+})();
+</script>
+</body>
 </html>
